@@ -1,5 +1,4 @@
 import dotenv from 'dotenv';
-dotenv.config();
 import express from 'express';
 import http from 'http';
 import cors from 'cors';
@@ -8,43 +7,30 @@ import mongoose from 'mongoose';
 import { Server } from 'socket.io';
 
 // Import routes
-import authRoutes from './routes/auth.js';
-import ownerRoutes from './routes/owner.js';
-import securityRoutes from './routes/security.js';
+import { authRouter } from './routes/auth.js';
+import { ownerRouter } from './routes/owner.js';
+import { securityRouter } from './routes/security.js';
+import connectDB from './config/db.js';
 
+dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
 
 // Connect to MongoDB
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+connectDB();
 
-// Configure middleware
+// Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
 // Use routes
-app.use('/api/auth', authRoutes);
-app.use('/api/owner', ownerRoutes);
-app.use('/api/security', securityRoutes);
-
-// Start the server
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
-});
+app.use('/api/auth', authRouter);
+app.use('/api/owner', ownerRouter);
+app.use('/api/security', securityRouter);
 
 // Setup Socket.IO for real-time notifications
-const io = new Server(server, {
-  cors: { origin: '*' },
-});
-
+const io = new Server(server, { cors: { origin: '*' } });
 io.on('connection', (socket) => {
   console.log('New client connected', socket.id);
   socket.on('disconnect', () => {
@@ -52,5 +38,12 @@ io.on('connection', (socket) => {
   });
 });
 
-// Export io so routes can emit events
+// Make io globally available (for emitting events from routes)
+global.io = io;
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
+
 export default io;

@@ -26,11 +26,13 @@ router.post('/requests/:id/respond', verifyToken, async (req, res) => {
   const { accepted } = req.body;
   try {
     // For simplicity, we'll remove the request.
-    await VisitorRequest.findByIdAndRemove(requestId);
+    if(requestId){
+    await VisitorRequest.findOneAndDelete(requestId);}
     res.json({ message: accepted ? 'Request approved' : 'Request rejected' });
   } catch (err) {
-    res.status(500).json({ message: 'Error processing request' });
+    res.status(500).json({ message: `Error processing request error ${err}` });
   }
 });
+
 
 export { router as ownerRouter };

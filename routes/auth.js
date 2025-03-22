@@ -11,9 +11,11 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
 // POST /api/auth/owner/login
 router.post('/owner/login', async (req, res) => {
+  console.log("got the request");
   const { email, password } = req.body;
   try {
     // Find the owner user from the database
+    console.log("got the request");
     const user = await User.findOne({ email, role: 'owner' });
     if (!user) {
       return res.status(401).json({ message: 'Invalid owner credentials' });

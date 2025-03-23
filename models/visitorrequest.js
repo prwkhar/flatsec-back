@@ -6,6 +6,7 @@ const VisitorRequestSchema = new mongoose.Schema({
   time: { type: String },
   purpose: { type: String, required: true },
   imageUrl: { type: String }, // URL of the uploaded image on Cloudinary
+  roomno: {type: Number, required: true},
   createdAt: { type: Date, default: Date.now },
 });
 

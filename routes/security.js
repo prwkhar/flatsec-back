@@ -12,7 +12,7 @@ router.post('/visitor', verifyToken, upload.single('image'), async (req, res) =>
     return res.status(403).json({ message: 'Not authorized' });
   }
 
-  const { name, address, time, purpose } = req.body;
+  const { name, address, phoneno, purpose } = req.body;
   const roomno = Number(req.body.roomno);
 
   try {
@@ -40,7 +40,7 @@ router.post('/visitor', verifyToken, upload.single('image'), async (req, res) =>
     const newRequest = new VisitorRequest({
       visitorName: name,
       address,
-      time,
+      phoneno,
       purpose,
       imageUrl,
       roomno,
@@ -110,8 +110,7 @@ router.get('/owner/:id',verifyToken,async (req, res) => {
 
   try {
     const id = req.params.id;
-    const emailid = id + "@flat.com";
-    const user = await User.findOne({ email: emailid }); // FIX: findOne instead of find
+    const user = await User.findOne({ email: id}); // FIX: findOne instead of find
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });

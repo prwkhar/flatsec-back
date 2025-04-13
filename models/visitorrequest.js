@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 const VisitorRequestSchema = new mongoose.Schema({
   visitorName: { type: String, required: true },
   address: { type: String },
-  time: { type: String },
+  phoneno: { type: String },
   purpose: { type: String, required: true },
   imageUrl: { type: String },
   roomno: { type: Number, required: true },

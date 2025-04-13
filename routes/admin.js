@@ -38,6 +38,8 @@ router.post('/addsecurity', verifyToken, async (req, res) => {
       name: req.body.name,
       email: req.body.email,
       password: password,
+      phoneno: req.body.phoneno,
+      address: req.body.address,
       role: 'security',
     });
     res.json({ message: 'Security added successfully', security: addsecurity });

@@ -58,4 +58,39 @@ router.post('/requests/:id/respond', verifyToken, async (req, res) => {
   }
 });
 
+router.patch('/toggle-call-permission', verifyToken, async (req, res) => {
+  try {
+    const { permission } = req.body;
+    console.log('Permission:', permission);
+    const updatedUser = await User.findOneAndUpdate(
+      { email: req.user.email },
+      { permission },
+      { new: true }
+    );
+
+    if (!updatedUser) return res.status(404).json({ message: 'User not found' });
+    res.status(200).json({ permission: updatedUser.permission });
+  } catch (err) {
+    console.error('Error updating call permission:', err);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+router.get('/call-permission', verifyToken, async (req, res) => {
+  console.log('Fetching call permission for:', req.user.email);
+  try {
+    const user = await User.findOne({ email: req.user.email });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Return the user's current permission value
+    res.status(200).json({ permission: user.permission });
+  } catch (err) {
+    console.error('Error fetching call permission:', err);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 export { router as ownerRouter };

@@ -9,6 +9,7 @@ const VisitorRequestSchema = new mongoose.Schema({
   roomno: { type: Number, required: true },
   createdAt: { type: Date, default: Date.now, index: { expires: '24h' } }, // Automatically deletes after 24 hours
   status: { type: Number, default: 0 },
+  instatus: { type: Number, default: 0 },
 });
 
 

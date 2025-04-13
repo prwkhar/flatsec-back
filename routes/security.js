@@ -1,25 +1,23 @@
-// security.js
 import express from 'express';
 import { verifyToken } from '../middleware/auth.js';
 import VisitorRequest from '../models/visitorrequest.js';
 import upload from '../middleware/upload.js';
 import cloudinary from '../config/cloudinary.js';
+import User from '../models/users.js';
 
 const router = express.Router();
 
-// POST /api/security/visitor - submit visitor details with image upload (protected)
 router.post('/visitor', verifyToken, upload.single('image'), async (req, res) => {
   if (req.user.role !== 'security') {
     return res.status(403).json({ message: 'Not authorized' });
   }
 
   const { name, address, time, purpose } = req.body;
-  const roomno = Number(req.body.roomno); // Convert roomno to a number
+  const roomno = Number(req.body.roomno);
 
   try {
     let imageUrl = '';
 
-    // If an image is provided, upload it to Cloudinary
     if (req.file) {
       const result = await new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
@@ -39,7 +37,6 @@ router.post('/visitor', verifyToken, upload.single('image'), async (req, res) =>
       imageUrl = result.secure_url;
     }
 
-    // Create the visitor request using the provided model
     const newRequest = new VisitorRequest({
       visitorName: name,
       address,
@@ -50,7 +47,6 @@ router.post('/visitor', verifyToken, upload.single('image'), async (req, res) =>
     });
     await newRequest.save();
 
-    // Emit new visitor request event via Socket.IO
     if (global.io) {
       global.io.emit('new_request', newRequest);
     }
@@ -62,14 +58,13 @@ router.post('/visitor', verifyToken, upload.single('image'), async (req, res) =>
   }
 });
 
-// PATCH /api/security/request/:id/status - update the status of a visitor request (protected)
 router.patch('/request/:id/status', verifyToken, async (req, res) => {
   if (req.user.role !== 'security') {
     return res.status(403).json({ message: 'Not authorized' });
   }
 
   const { id } = req.params;
-  const { status } = req.body; // New status sent from the client (e.g., 0, 1, 2)
+  const { status } = req.body;
 
   try {
     const updatedRequest = await VisitorRequest.findByIdAndUpdate(
@@ -82,7 +77,6 @@ router.patch('/request/:id/status', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'Visitor request not found' });
     }
 
-    // Emit the updated request to all connected clients
     if (global.io) {
       global.io.emit('status_update', updatedRequest);
     }
@@ -94,7 +88,6 @@ router.patch('/request/:id/status', verifyToken, async (req, res) => {
   }
 });
 
-// GET /api/security/requests - Get all visitor requests (protected)
 router.get('/requests', verifyToken, async (req, res) => {
   if (req.user.role !== 'security') {
     return res.status(403).json({ message: 'Not authorized' });
@@ -106,6 +99,26 @@ router.get('/requests', verifyToken, async (req, res) => {
     res.json(requests);
   } catch (err) {
     console.error(err);
+    res.status(500).json({ message: 'Error fetching requests' });
+  }
+});
+
+router.get('/owner/:id',verifyToken,async (req, res) => {
+  if (req.user.role !== 'security') {
+    return res.status(403).json({ message: 'Not authorized' });
+  }
+
+  try {
+    const id = req.params.id;
+    const emailid = id + "@flat.com";
+    const user = await User.findOne({ email: emailid }); // FIX: findOne instead of find
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (err) {
     res.status(500).json({ message: 'Error fetching requests' });
   }
 });

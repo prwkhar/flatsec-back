@@ -8,6 +8,7 @@ import { Server } from 'socket.io';
 
 // Import routes
 import { authRouter } from './routes/auth.js';
+import { adminRouter } from './routes/admin.js';
 import { ownerRouter } from './routes/owner.js';
 import { securityRouter } from './routes/security.js';
 import connectDB from './config/db.js';
@@ -28,6 +29,7 @@ app.use(bodyParser.json());
 app.use('/api/auth', authRouter);
 app.use('/api/owner', ownerRouter);
 app.use('/api/security', securityRouter);
+app.use('/api/admin',adminRouter);
 
 // Setup Socket.IO for real-time notifications
 const io = new Server(server, { cors: { origin: '*' } });

@@ -1,91 +1,65 @@
-import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
 import User from "./models/users.js";
-
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 dotenv.config();
+
+// Utility function to generate random names and phones
+function getRandomName() {
+  const names = ["Aryan", "Diya", "Rohan", "Meera", "Kunal", "Ananya", "Tara", "Vivaan", "Aisha", "Neel"];
+  return names[Math.floor(Math.random() * names.length)];
+}
+
+function getRandomPhone() {
+  return "9" + Math.floor(100000000 + Math.random() * 900000000); // 10-digit starting with 9
+}
+
+function getRandomPermission() {
+  return Math.random() > 0.5;
+}
 
 async function seedUsers() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("Connected to MongoDB");
 
-    // Optional: clear existing users
-    // Optional: clear existing users
     await User.deleteMany({});
 
-    // Hash passwords for demonstration
     const ownerPasswordHash = await bcrypt.hash("ownerpass", 10);
     const securityPasswordHash = await bcrypt.hash("securitypass", 10);
+    const adminPasswordHash = await bcrypt.hash("adminpass", 10);
 
-    // Insert dummy users with hashed passwords
-    await User.insertMany([
+    const owners = Array.from({ length: 10 }, (_, i) => ({
+      email: `room${i + 1}@flat.com`,
+      password: ownerPasswordHash,
+      role: "owner",
+      roomno: i + 1,
+      name: getRandomName(),
+      phoneno: getRandomPhone(),
+      permission: getRandomPermission(),
+    }));
+
+    const users = [
       {
-        email: "room1@flat.com",
-        password: ownerPasswordHash,
-        role: "owner",
-        roomno: 1,
+        email: "admin@gmail.com",
+        password: adminPasswordHash,
+        role: "admin",
+        name: "Admin",
+        phoneno: getRandomPhone(),
+        permission: true,
       },
-      {
-        email: "room2@flat.com",
-        password: ownerPasswordHash,
-        role: "owner",
-        roomno: 2,
-      },
-      {
-        email: "room3@flat.com",
-        password: ownerPasswordHash,
-        role: "owner",
-        roomno: 3,
-      },
-      {
-        email: "room4@flat.com",
-        password: ownerPasswordHash,
-        role: "owner",
-        roomno: 4,
-      },
-      {
-        email: "room5@flat.com",
-        password: ownerPasswordHash,
-        role: "owner",
-        roomno: 5,
-      },
-      {
-        email: "room6@flat.com",
-        password: ownerPasswordHash,
-        role: "owner",
-        roomno: 6,
-      },
-      {
-        email: "room7@flat.com",
-        password: ownerPasswordHash,
-        role: "owner",
-        roomno: 7,
-      },
-      {
-        email: "room8@flat.com",
-        password: ownerPasswordHash,
-        role: "owner",
-        roomno: 8,
-      },
-      {
-        email: "room9@flat.com",
-        password: ownerPasswordHash,
-        role: "owner",
-        roomno: 9,
-      },
-      {
-        email: "room10@flat.com",
-        password: ownerPasswordHash,
-        role: "owner",
-        roomno: 10,
-      },
+      ...owners,
       {
         email: "security@example.com",
         password: securityPasswordHash,
         role: "security",
+        name: "Guard Bhaiya",
+        phoneno: getRandomPhone(),
+        permission: true,
       },
-    ]);
+    ];
+
+    await User.insertMany(users);
 
     console.log("Dummy users inserted");
     mongoose.connection.close();
@@ -95,3 +69,4 @@ async function seedUsers() {
 }
 
 seedUsers();
+

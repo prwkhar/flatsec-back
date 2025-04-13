@@ -57,17 +57,36 @@ router.post('/security/login', async (req, res) => {
   }
 });
 
-// POST /api/auth/owner/logout
+//admin login
+router.post('/admin/login', async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({ email, role: 'admin' });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid security credentials' });
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid security credentials' });
+    }
+    const token = jwt.sign({ email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
+    return res.json({ token });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Server error' });
+  }
+});
+
 router.post('/owner/logout', (req, res) => {
-  // In a stateless JWT setup, the server doesn't track sessions.
-  // The client should simply delete the token.
   return res.json({ message: 'Owner logged out successfully' });
 });
 
-// POST /api/auth/security/logout
 router.post('/security/logout', (req, res) => {
-  // Similarly, inform the client to remove the token.
   return res.json({ message: 'Security user logged out successfully' });
+});
+
+router.post('/admin/logout', (req, res) => {
+  return res.json({ message: 'Admin user logged out successfully' });
 });
 
 export { router as authRouter };
